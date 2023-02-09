@@ -68,7 +68,14 @@ func readMessages() {
 func handleMessage(msg *amqp.Delivery, ch *amqp.Channel, database *Database) {
 	// fmt.Print(".")
 	splits := strings.Split(string(msg.Body), "|")
-	value, err := database.getUser(splits[0])
+	jsonData, err := database.getUser(splits[0])
+	failOnError(err)
+
+	var perms Permmision
+
+	err := json.Unmarshal(jsonData, &perms)
+	failOnError(err)
+	
 
 	if err != nil {
 		log.Println("Error:", err)

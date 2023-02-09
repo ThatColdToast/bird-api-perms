@@ -36,7 +36,7 @@ func makeDatabase() Database {
 	}
 }
 
-func (x Database) getUser(userId string) (string, error) { //context.WithDeadline(context.Background(), time.Now().Add(30*time.Second))
+func (x Database) getUser(userId string) (Permmision, error) { //context.WithDeadline(context.Background(), time.Now().Add(30*time.Second))
 	cachedValue, err := x.redisCache.Get(context.Background(), userId)
 
 	switch err {
