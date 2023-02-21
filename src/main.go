@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"strings"
 	"sync"
@@ -69,13 +70,12 @@ func handleMessage(msg *amqp.Delivery, ch *amqp.Channel, database *Database) {
 	// fmt.Print(".")
 	splits := strings.Split(string(msg.Body), "|")
 	jsonData, err := database.getUser(splits[0])
-	failOnError(err)
+	failOnError(err, "Couldn't get user from db")
 
-	var perms Permmision
+	var perms Permission
 
-	err := json.Unmarshal(jsonData, &perms)
-	failOnError(err)
-	
+	err = json.Unmarshal(jsonData, &perms)
+	failOnError(err, "Couldn't unwrap json")
 
 	if err != nil {
 		log.Println("Error:", err)

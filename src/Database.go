@@ -36,13 +36,16 @@ func makeDatabase() Database {
 	}
 }
 
-func (x Database) getUser(userId string) (Permmision, error) { //context.WithDeadline(context.Background(), time.Now().Add(30*time.Second))
+func (x Database) getUser(userId string) (Permission, error) { //context.WithDeadline(context.Background(), time.Now().Add(30*time.Second))
 	cachedValue, err := x.redisCache.Get(context.Background(), userId)
 
 	switch err {
 	case nil:
 		// log.Printf("Cached Value '%s': '%s'\n", userId, cachedValue)
-		return cachedValue, nil
+		return Permission{
+			name: cachedValue,
+			value: true
+		}, nil
 	case redis.Nil:
 		log.Printf("Cache Miss '%s'\n", userId)
 	default:
@@ -51,7 +54,11 @@ func (x Database) getUser(userId string) (Permmision, error) { //context.WithDea
 
 	value, err := x.getUserFromDatabase(context.Background(), userId)
 	if err != nil {
-		return "", err
+		return Permission{
+			Name: "",
+			Value: false,
+		},
+			err
 	}
 
 	cache_err := x.redisCache.Set(
