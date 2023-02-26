@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"strings"
 	"sync"
@@ -66,16 +65,47 @@ func readMessages() {
 	}
 }
 
+func parsePerms(perms []string, query []string) bool {
+	for i := 0; i < len(perms); i++ {
+		// log.Printf("Owned: %s", perms[i])
+		perm := strings.Split(perms[i], ".")
+
+		var allowed bool = false
+		if string(perm[0][0]) != "!" {
+			allowed = true
+		} else {
+			perm[0] = perm[0][1:]
+		}
+
+		for j := 0; j < len(perm); j++ {
+			log.Printf("Check: %s : %s", perm[j], query[j])
+			if perm[j] != query[j] {
+				if perm[j] == "*" {
+					return allowed
+				}
+				break
+			}
+
+			if j == len(perm)-1 {
+				return allowed
+			}
+		}
+	}
+	return false
+}
+
 func handleMessage(msg *amqp.Delivery, ch *amqp.Channel, database *Database) {
 	// fmt.Print(".")
-	splits := strings.Split(string(msg.Body), "|")
-	jsonData, err := database.getUser(splits[0])
-	failOnError(err, "Couldn't get user from db")
+	request := strings.Split(string(msg.Body), "|")
+	log.Printf("Request: %s", request[1])
 
-	var perms Permission
+	// perms = ["bird.post.create", "bird.post.read.any"]
+	perms, err := database.getUserPerms(request[0])
 
-	err = json.Unmarshal(jsonData, &perms)
-	failOnError(err, "Couldn't unwrap json")
+	var allowed string = "false"
+	if parsePerms(perms, strings.Split(request[1], ".")) {
+		allowed = "true"
+	}
 
 	if err != nil {
 		log.Println("Error:", err)
@@ -92,7 +122,7 @@ func handleMessage(msg *amqp.Delivery, ch *amqp.Channel, database *Database) {
 		amqp.Publishing{
 			ContentType:   "text/plain",
 			CorrelationId: msg.CorrelationId,
-			Body:          []byte(value),
+			Body:          []byte(allowed),
 		})
 	failOnError(err, "Failed to publish a message")
 
@@ -107,7 +137,7 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	threads := 5
+	threads := 6
 	for i := 0; i < threads; i++ {
 		wg.Add(1)
 		go func() {
