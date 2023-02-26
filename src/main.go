@@ -78,7 +78,7 @@ func parsePerms(perms []string, query []string) bool {
 		}
 
 		for j := 0; j < len(perm); j++ {
-			log.Printf("Check: %s : %s", perm[j], query[j])
+			// log.Printf("Check: %s : %s", perm[j], query[j])
 			if perm[j] != query[j] {
 				if perm[j] == "*" {
 					return allowed
@@ -95,9 +95,8 @@ func parsePerms(perms []string, query []string) bool {
 }
 
 func handleMessage(msg *amqp.Delivery, ch *amqp.Channel, database *Database) {
-	// fmt.Print(".")
 	request := strings.Split(string(msg.Body), "|")
-	log.Printf("Request: %s", request[1])
+	// log.Printf("Request: %s", request[1])
 
 	// perms = ["bird.post.create", "bird.post.read.any"]
 	perms, err := database.getUserPerms(request[0])
