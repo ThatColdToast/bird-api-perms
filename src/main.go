@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -18,7 +20,12 @@ func failOnError(err error, msg string) {
 
 func readMessages() {
 	log.Printf("Connecting\n")
-	conn, err := amqp.Dial("amqp://user:pass@172.17.0.2:5672/")
+
+	username := os.Getenv("PERMISSION_RABBITMQ_USERNAME")
+	password := os.Getenv("PERMISSION_RABBITMQ_PASSWORD")
+	queue_name := os.Getenv("PERMISSION_RABBITMQ_QUEUE_NAME")
+
+	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@172.17.0.2:5672/", username, password))
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
@@ -29,12 +36,12 @@ func readMessages() {
 
 	log.Printf("Creating Queue\n")
 	queue, err := ch.QueueDeclare(
-		"perms_request", // name
-		false,           // durable
-		false,           // delete when unused
-		false,           // exclusive
-		false,           // no-wait
-		nil,             // arguments
+		queue_name, // name
+		false,      // durable
+		false,      // delete when unused
+		false,      // exclusive
+		false,      // no-wait
+		nil,        // arguments
 	)
 	failOnError(err, "Failed to declare a queue")
 
