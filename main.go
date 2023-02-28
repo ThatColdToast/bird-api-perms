@@ -107,14 +107,13 @@ func handleMessage(msg *amqp.Delivery, ch *amqp.Channel, database *Database) {
 
 	// perms = ["bird.post.create", "bird.post.read.any"]
 	perms, err := database.getUserPerms(request[0])
+	if err != nil {
+		log.Println("Error:", err)
+	}
 
 	var allowed string = "false"
 	if parsePerms(perms, strings.Split(request[1], ".")) {
 		allowed = "true"
-	}
-
-	if err != nil {
-		log.Println("Error:", err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
