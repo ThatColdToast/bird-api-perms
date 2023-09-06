@@ -23,9 +23,14 @@ func readMessages() {
 
 	username := os.Getenv("PERMISSION_RABBITMQ_USERNAME")
 	password := os.Getenv("PERMISSION_RABBITMQ_PASSWORD")
+	host := os.Getenv("RABBITMQ_SVC_SERVICE_HOST")
+	port := os.Getenv("RABBITMQ_SVC_SERVICE_PORT")
 	queue_name := os.Getenv("PERMISSION_RABBITMQ_QUEUE_NAME")
 
-	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@172.17.0.2:5672/", username, password))
+	// log.Printf("Us:'%s' Pa:'%s' Ho:'%s' Po:'%s' QN:'%s'\n", username, password, host, port, queue_name)
+	// log.Printf("amqp://%s:%s@%s:%s/\nQN:%s\n", username, password, host, port, queue_name)
+
+	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/", username, password, host, port))
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 

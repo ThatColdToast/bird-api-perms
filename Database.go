@@ -32,7 +32,7 @@ func makeDatabase() Database {
 
 		redisCache: cache.New[string](redis_store.NewRedis(redis.NewClient(
 			&redis.Options{
-				Addr: "172.17.0.3:6379",
+				Addr: fmt.Sprintf("%s:%s", os.Getenv("PERMISSION_REDIS_SVC_SERVICE_HOST"), os.Getenv("PERMISSION_REDIS_SVC_SERVICE_PORT")),
 			},
 		))),
 	}
